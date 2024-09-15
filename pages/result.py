@@ -2,7 +2,7 @@ import streamlit as st
 import asyncio
 from backend import ai,web
 from openai import BaseModel, OpenAI
-client=OpenAI(api_key="Osk-5_hm4_IUIUCJDVZQ_1zCm8kaurMRPcD9Iso3-2yAGAT3BlbkFJYcex7sktCKiblB5sngBFI1SWdXqoH1L6EiaTITECwA")
+client=OpenAI(api_key=st.secrets["openai_apikey"])
 import time
 
 
