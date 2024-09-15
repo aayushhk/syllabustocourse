@@ -8,9 +8,9 @@ from pydantic import BaseModel
 from backend import ai
 #from pages.result import generate_study_material
 from openai import OpenAI
+import os
 
-
-client=OpenAI(api_key="sk-5_hm4_IUIUCJDVZQ_1zCm8kaurMRPcD9Iso3-2yAGAT3BlbkFJYcex7sktCKiblB5sngBFI1SWdXqoH1L6EiaTITECwA")
+client=OpenAI(api_key=st.secrets["openai_apikey"])
 
 st.set_page_config("Study Material",layout="wide",initial_sidebar_state="collapsed",page_icon="📚")
 with bottom():
