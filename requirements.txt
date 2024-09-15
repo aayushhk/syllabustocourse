@@ -1,0 +1,9 @@
+PyPDF2
+streamlit
+streamlit_extras
+pydantic
+openai
+os
+asyncio
+time
+duckduckgo_search
