@@ -11,14 +11,7 @@ import os
 from duckduckgo_search import AsyncDDGS, DDGS
 
 st.set_page_config("Study Material",layout="wide",initial_sidebar_state="expanded",page_icon="💡")
-hide_streamlit_style = ("""
-<style>
-.css-hi6a2p {padding-top: 0rem;}
-</style>
 
-""")
-
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
 s=st.container(border=True)
