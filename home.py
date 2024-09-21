@@ -13,7 +13,14 @@ client=OpenAI(api_key=st.secrets["openai_apikey"])
 
 
 st.set_page_config("Study Material",layout="wide",initial_sidebar_state="collapsed",page_icon="📚")
+hide_streamlit_style = ("""
+<style>
+.css-hi6a2p {padding-top: 0rem;}
+</style>
 
+""")
+
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
 
