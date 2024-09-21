@@ -12,18 +12,6 @@ from duckduckgo_search import AsyncDDGS, DDGS
 
 st.set_page_config("Study Material",layout="wide",initial_sidebar_state="expanded",page_icon="💡")
 
-hide_streamlit_style = """
-            <style>
-                /* Hide the Streamlit header and menu */
-                header {visibility: hidden;}
-                /* Optionally, hide the footer */
-                .streamlit-footer {display: none;}
-                /* Hide your specific div class, replace class name with the one you identified */
-                .st-emotion-cache-uf99v8 {display: none;}
-            </style>
-            """
-
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 s=st.container(border=True)
 r=st.empty()
@@ -82,22 +70,23 @@ async def current_diagram(current_topic, current_subtopic):
 if 'toc_content' in st.session_state:
     
     
-    r.info("✨ Select a topic to get started...")
+    r.info("✨ Select a topic from the sidebar to get started...")
     
 
     with st.sidebar:
+        homeBB=st.button("🏠 Home",use_container_width=True,help="Navigates back to the home page",type="secondary")
+        if homeBB:
+            st.switch_page("home.py")
         st.subheader("📃 INDEX")
 
     # Iterate over the TOC entries and display them
     for toc_entry in st.session_state['toc_content']:
         unit_title = toc_entry.unit_title  # First element of the first tuple (list containing unit title)
-        
         subtopics = toc_entry.subtopics  # Second element of the tuple (list of subtopics)
+        x=st.sidebar.expander(unit_title)
         
-        
-        # Create expanders for each unit title and corresponding buttons for each subtopic
-        
-        with st.sidebar.expander(unit_title):
+        with x:
+            
             
             for subtopic in subtopics:
                #selection=st.button(subtopic, on_click=lambda subtopic=subtopic: st.session_state.update({'current_topic': unit_title, 'current_subtopic': subtopic}))#
@@ -117,33 +106,30 @@ if 'toc_content' in st.session_state:
                     notes.subheader("📒 Notes")
                     st.toast('📒 Generating Notes')
                     summary = asyncio.run(course_content(st.session_state.course_name,st.session_state.current_topic, st.session_state.current_subtopic,summerize_key_concepts))
-                    notes.write(summary)
+                    notes.markdown(summary)
                     formula = asyncio.run(course_content(st.session_state.course_name,st.session_state.current_topic, st.session_state.current_subtopic,formulas))
-                    notes.write(formula)
+                    notes.markdown(formula)
                     example = asyncio.run(course_content(st.session_state.course_name,st.session_state.current_topic, st.session_state.current_subtopic,examples))
-                    notes.write(example)
+                    notes.markdown(example)
                     mistake = asyncio.run(course_content(st.session_state.course_name,st.session_state.current_topic, st.session_state.current_subtopic,mistakes))
-                    notes.write(mistake)
+                    notes.markdown(mistake)
                     practice = asyncio.run(course_content(st.session_state.course_name,st.session_state.current_topic, st.session_state.current_subtopic,practice_p))
-                    notes.write(practice)
-                    
-                    
-                    
-                    
-                    
-                    
+                    notes.markdown(practice)
                     
                     
                     diagrams.subheader("🖼️ Diagrams")
                     diags=asyncio.run(current_diagram(f"Scientific Diagrams of ", f"{st.session_state.current_subtopic} in {st.session_state.current_topic}" ))
-
                     st.toast('🖼️ Getting Diagrams')
-                    time.sleep(.2)
+                
 
                     for img in diags:
-                        
                         img_c=diagrams.container(border=True)
-                        img_c.image(img['image'],use_column_width=True,caption=img["title"])
+                        img_1,img2=img_c.columns([3,1])
+                        img_1.image(img['image'],use_column_width=True,caption=img["title"])
+                        img2.subheader(img["title"])
+                        img2.write(img['url'])
+                        img2.info(f"By {img['source']}")
+
                         
                     
                     
@@ -214,4 +200,7 @@ if 'toc_content' in st.session_state:
         
 else:
     st.error("Please Upload your syllabus first")
+    homeB=st.button("⬅️Go back")
+    if homeB:
+        st.switch_page("home.py")
 
