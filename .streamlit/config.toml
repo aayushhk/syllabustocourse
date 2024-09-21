@@ -3,3 +3,6 @@ base="light"
 primaryColor="#333333"
 secondaryBackgroundColor="#e6e6e6"
 
+[client]
+toolbarMode = "minimal"
+showSidebarNavigation = false
