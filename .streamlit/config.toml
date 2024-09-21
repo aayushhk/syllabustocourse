@@ -4,5 +4,5 @@ primaryColor="#333333"
 secondaryBackgroundColor="#e6e6e6"
 
 [client]
-toolbarMode = "viewer"
+toolbarMode = "minimal"
 showSidebarNavigation = false
