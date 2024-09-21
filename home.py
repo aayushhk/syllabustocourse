@@ -15,7 +15,7 @@ client=OpenAI(api_key=st.secrets["openai_apikey"])
 st.set_page_config("Study Material",layout="wide",initial_sidebar_state="collapsed",page_icon="📚")
 
 
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 
 with bottom():
         footer=st.container(border=True)
