@@ -13,16 +13,7 @@ client=OpenAI(api_key=st.secrets["openai_apikey"])
 
 
 st.set_page_config("Study Material",layout="wide",initial_sidebar_state="collapsed",page_icon="📚")
-hide_streamlit_style = """
-            <style>
-                /* Hide the Streamlit header and menu */
-                header {visibility: hidden;}
-                /* Optionally, hide the footer */
-                .streamlit-footer {display: none;}
-                /* Hide your specific div class, replace class name with the one you identified */
-                .st-emotion-cache-uf99v8 {display: none;}
-            </style>
-            """
+
 
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
