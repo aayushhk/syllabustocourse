@@ -5,3 +5,4 @@ pydantic
 openai
 asyncio
 duckduckgo_search
+markdown_pdf
