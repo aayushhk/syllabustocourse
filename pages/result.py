@@ -5,13 +5,13 @@ from openai import BaseModel, OpenAI
 client=OpenAI(api_key=st.secrets["openai_apikey"])
 import time
 import os
+from streamlit_extras.bottom_container import bottom
+from markdown_pdf import Section,MarkdownPdf
 
-
-
+pdf = MarkdownPdf(toc_level=2)
 from duckduckgo_search import AsyncDDGS, DDGS
 
 st.set_page_config("Study Material",layout="wide",initial_sidebar_state="expanded",page_icon="💡")
-
 hide_streamlit_style = ("""
 <style>
 .css-hi6a2p {padding-top: 0rem;}
@@ -20,12 +20,10 @@ hide_streamlit_style = ("""
 """)
 
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
 s=st.container(border=True)
 r=st.empty()
-
-
-
-        
 
 
 
@@ -50,7 +48,7 @@ examples="Examples: Provide different example for each formula/theorem in a tabl
 mistakes="Common Mistakes: Point out 5 common mistakes students should avoid in table with Wrong and Right columns  "
 practice_p="Practice Questions: Respond only with 5 common practice questions or problems for each topic with solutions"
 
-
+@st.cache_resource 
 async def course_content(course_name, current_topic, current_subtopic,content_type):
     
     index= await ai(f"{system_prompt} Content type: {content_type}. Topic: {current_subtopic} chapter: {current_subtopic} in {current_topic}, subject: {course_name}")
@@ -72,18 +70,26 @@ async def current_diagram(current_topic, current_subtopic):
     
     return diagrams
 
+if 'text' in st.session_state:
+    emp_c=r.container()
+    emp_c.header("Introduction")
+    emp_c.write(asyncio.run(ai(f"Summerize this syllabus in one paragraph. Basics of each topic and subtopics: {st.session_state['text']}. Provide a learning roadmap")))
+    emp_c.write(asyncio.run(ai(f"Provide a table with 2 columns - 1. Topic and 2. Time required to learn the topic in Days: {st.session_state['text']}. Provide a learning roadmap")))
+    emp_c.info("✨ Select a topic from the sidebar to get started...")
+    emp_c.code(st.session_state['text'])   
+    del st.session_state["text"]
 
 
 if 'toc_content' in st.session_state:
-    
-    
-    r.info("✨ Select a topic from the sidebar to get started...")
-    
+         
 
     with st.sidebar:
         homeBB=st.button("🏠 Home",use_container_width=True,help="Navigates back to the home page",type="secondary")
         if homeBB:
+            for key in st.session_state.keys():
+                del st.session_state[key]
             st.switch_page("home.py")
+        
         st.subheader("📃 INDEX")
 
     # Iterate over the TOC entries and display them
@@ -108,7 +114,7 @@ if 'toc_content' in st.session_state:
                     problems=problems_t.container()
                     
                     
-                    
+                    st.session_state["downloaded"]=False
 
                     notes.subheader("📒 Notes")
                     st.toast('📒 Generating Notes')
@@ -122,30 +128,32 @@ if 'toc_content' in st.session_state:
                     notes.markdown(mistake)
                     practice = asyncio.run(course_content(st.session_state.course_name,st.session_state.current_topic, st.session_state.current_subtopic,practice_p))
                     notes.markdown(practice)
+                    if summary and formula and example and mistake and practice:
+                        with bottom():
+                            y=st.container(border=True)
+                            if y:
+                                download_txt = summary+"\n"+formula+"\n"+example+"\n"+mistake+"\n"+practice+"\n"
+                                pdf.add_section(Section(download_txt, toc=False))
+                                pdf.meta["title"] = st.session_state.current_subtopic
+                                pdf.meta["author"] = "course gen"
+                                pdffilename=f"{st.session_state.current_subtopic}.pdf"
+                                pdf.save(pdffilename)
+                                with open(pdffilename, "rb") as pdf_file:
+                                        PDFbyte = pdf_file.read()
+                                st.download_button("Download PDF",
+                                    data=PDFbyte,
+                                    file_name=pdffilename,
+                                    mime='application/octet-stream')
+                                st.session_state["downloaded"]=True
+                        
                     
-                    
-                    diagrams.subheader("🖼️ Diagrams")
-                    diags=asyncio.run(current_diagram(f"Scientific Diagrams of ", f"{st.session_state.current_subtopic} in {st.session_state.current_topic}" ))
-                    st.toast('🖼️ Getting Diagrams')
-                
-
-                    for img in diags:
-                        img_c=diagrams.container(border=True)
-                        img_1,img2=img_c.columns([3,1])
-                        img_1.image(img['image'],use_column_width=True,caption=img["title"])
-                        img2.subheader(img["title"])
-                        img2.write(img['url'])
-                        img2.info(f"By {img['source']}")
-
                         
                     
                     
                     st.toast('✅ Study material updated')
-                    
-                    
                     if revision:
                         st.toast('🗒️ Summerizing content for quick revision')
-                        time.sleep(.5)
+                        
                         explainers=asyncio.run(ai(f"Provide study materials of given topic of the given chapter in 10 points for quick revision. Do not output anything else. Output a list without heading topic: {st.session_state.current_subtopic}, Chapter: {st.session_state.current_topic}" ))
                         revision.subheader("🗒️ Quick revision")
                         revision.markdown(explainers)
@@ -176,7 +184,19 @@ if 'toc_content' in st.session_state:
                     
 
                     
-                    
+                    diagrams.subheader("🖼️ Diagrams")
+                    diags=asyncio.run(current_diagram(f"Scientific Diagrams of ", f"{st.session_state.current_subtopic} in {st.session_state.current_topic}" ))
+                    st.toast('🖼️ Getting Diagrams')
+                
+
+                    for img in diags:
+                        img_c=diagrams.container(border=True)
+                        img_1,img2=img_c.columns([3,1])
+                        img_1.image(img['image'],use_column_width=True,caption=img["title"])
+                        img2.subheader(img["title"])
+                        img2.write(img['url'])
+                        img2.info(f"By {img['source']}")
+
                     
                 
                     for vid in vids:
@@ -187,20 +207,6 @@ if 'toc_content' in st.session_state:
                         v2.subheader(vid['title'])
                         v2.info(f"By {vid['uploader']}")
                         v2.write(vid['description'])
-                                
-
-                   
-    
-    
-       
-    #st.divider()
-    
-    
-    
-    #st.divider()
-    
-    #st.divider()
-    
 
 
    
@@ -209,5 +215,7 @@ else:
     st.error("Please Upload your syllabus first")
     homeB=st.button("⬅️Go back")
     if homeB:
+        for key in st.session_state.keys():
+            del st.session_state[key]
         st.switch_page("home.py")
 
