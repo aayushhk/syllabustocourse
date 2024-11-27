@@ -2,7 +2,6 @@ import streamlit as st
 import PyPDF2
 from io import StringIO
 import asyncio
-from streamlit_extras.bottom_container import bottom
 import json
 from pydantic import BaseModel
 from backend import ai
@@ -12,7 +11,7 @@ from openai import OpenAI
 client=OpenAI(api_key=st.secrets["openai_apikey"])
 
 
-st.set_page_config("Study Material",layout="wide",initial_sidebar_state="collapsed",page_icon="📚")
+st.set_page_config("Course Generator",layout="wide",initial_sidebar_state="collapsed",page_icon="📚")
 hide_streamlit_style = ("""
 <style>
 .css-hi6a2p {padding-top: 0rem;}
@@ -20,15 +19,8 @@ hide_streamlit_style = ("""
 
 """)
 
+
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-
-
-with bottom():
-        footer=st.container(border=True)
-        
-        footer.write("🎯App by <b> <a href='https://www.linkedin.com/in/aayush-kumar-pandey/'>Aayush Kumar</a></b>",unsafe_allow_html=True)
-
        
 
 # Function to extract text from PDF using PyPDF2
@@ -63,47 +55,65 @@ async def toc(text):
 
 # Streamlit app
 async def main():
-        st.title("Last day prepararation just got easier!") 
+        st.title("Generate full course") 
         col2=st.container(border=True)
         
         with col2:
-            st.subheader("⏳ Exam Today?")
+            st.subheader("⏳ Dont have time to chatGPT everything? Just enter the job tile, or a syllabus, or simply type something..")
             st.write("Just upload the PDF of your syllabus and see it all coming together in a course. ")
-            
-            
-            # File uploader
-            course_name="///Course Name///"
-            course_name = st.text_input("Please enter the subject name")
-            if course_name not in st.session_state:
-                st.session_state['course_name'] = course_name
-            uploaded_file = st.file_uploader("Upload your syllabus PDF", type=["pdf"])
-            if uploaded_file not in st.session_state:
-                st.session_state['uploaded_file'] = uploaded_file
-            syllabus=""
-            text=""
-            syllabus=st.text_area("Paste your syllabus here / Add more topics to your PDF syllabus",placeholder="ctrl+V your syllabus here")
-            start=st.button("Get Study Materials")
-            # Generate study material button
-            
-            if start :
-                # Extract text from PDF
-                if uploaded_file:
-                    text = await extract_text_from_pdf(uploaded_file)
-                text+=syllabus
+            tab1, tab2 = st.tabs(["For Job seekers", "For students"])
+            with tab1:
+                st.subheader("Enter Your job title here...")
+                job_title = st.text_input("What position you are studying for",placeholder="Data Scientist")
+                st.session_state['job_title'] = job_title
+                get_table=st.button("Get Table of Content")
+            if get_table:
+                st.session_state['get_table'] = get_table
+                system_prompt='''1. Take real jobs from indeed and linkedin for reference
+                2. List tools and frameworks to learn
+                3. Provide a Table of content.
+                4.  Do not explain anything. Just the table of content.NO introduction, no conclusion  '''
                 
-                if text:
-                    st.toast("⚡ Fetching syllabus...")
-                    st.code(text)
-                    st.toast("🧐 Planning it out...")   
-                    toc_content=await toc(text)
+                x=await ai(f"user: Give me a relevant syllabus of 2024 to get an high paying {job_title} jobs? system:{system_prompt}")
+            else:
+                 x=""   
+                
 
-                    if 'toc_content' not in st.session_state:
-                        st.session_state['toc_content'] = toc_content
-                    st.toast("✨ Taking you to the course...")
-                    st.switch_page("pages/result.py")
-                
-                else:
-                     st.error("No syllabus provided. Failed to fetch syllabus")
+            # File uploader
+            with tab2:
+                course_name="///Course Name///"
+                course_name = st.text_input("Please enter the subject name")
+                if course_name not in st.session_state:
+                    st.session_state['course_name'] = course_name
+                uploaded_file = st.file_uploader("Upload your syllabus PDF", type=["pdf"])
+                if uploaded_file not in st.session_state:
+                    st.session_state['uploaded_file'] = uploaded_file
+           
+            text=""
+            if x : 
+                text+=x
+            if uploaded_file:
+                    
+                    pdf_content = await extract_text_from_pdf(uploaded_file)
+                    text+=pdf_content
+                    
+            
+            if text:
+                if 'text' not in st.session_state:
+                    st.session_state['text'] = text
+            
+                st.code(text)  
+                st.toast("⚡ Fetching syllabus...")
+                st.toast("🧐 Planning it out...")   
+                toc_content=await toc(text)
+
+                if 'toc_content' not in st.session_state:
+                    st.session_state['toc_content'] = toc_content
+                st.toast("✨ Taking you to the course...")
+                st.switch_page("pages/result.py")
+            
+            else:
+                st.info("No syllabus provided.")
 
                 
             
